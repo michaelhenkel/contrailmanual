@@ -14,7 +14,7 @@
 
 2. configuration
 a. /etc/contrail/contrail-database-nodemgr.conf
-
+```
 cat << EOF > /etc/contrail/contrail-database-nodemgr.conf
 [DEFAULT]
 hostip=10.0.0.200
@@ -24,6 +24,7 @@ minimum_diskGB=20
 server=vip
 port=5998
 EOF
+```
 
 b. change cluster name
 
