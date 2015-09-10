@@ -1,5 +1,6 @@
 1. software:
 
+```
     apt-get -y --force-yes install wget curl software-properties-common
     add-apt-repository ppa:opencontrail/ppa
     add-apt-repository ppa:opencontrail/r2.20
@@ -11,6 +12,7 @@
     apt-get update
     apt-get install -y --force-yes curl tcpdump iptables openssh-server rsync software-properties-common wget libssl0.9.8 \
                                    contrail-nodemgr contrail-utils zookeeper supervisor cassandra kafka puppet
+```
 
 2. configuration
 a. /etc/contrail/contrail-database-nodemgr.conf
@@ -28,30 +30,44 @@ EOF
 
 b. change cluster name
 
+```
 sed -i "s/cluster_name: 'Test Cluster'/cluster_name: 'Contrail'/g" /etc/cassandra/cassandra.yaml
+```
 
 c. change cassandra seeds/:
 
+```
 sed -i 's/"127.0.0.1"/"10.0.0.200"/g' /etc/cassandra/cassandra.yaml
 sed -i 's/localhost/10.0.0.200/g' cassandra.yaml
+```
 
 d. change zookeeper server:
 
+```
 sed -i 's/#server.1=zookeeper1:2888:3888/server.1=10.0.0.200:2888:3888/g' /etc/zookeeper/conf/zoo.cfg
+```
 
 e. change stack size:
 
+```
 sed -i 's/JVM_OPTS="$JVM_OPTS -Xss180k"/JVM_OPTS="$JVM_OPTS -Xss512k"/g' /etc/cassandra/cassandra-env.sh
+```
 
 f. add host entry:
 
+```
 echo "10.0.0.200	cas2" >> /etc/hosts
+```
 
 g. start zookeeper
 
+```
 service zookeeper start
+```
 
 h. restart supervisor-database
 
+```
 service supervisor-database restart
+```
 
