@@ -1,17 +1,17 @@
 1. software:
 
 ```
-    apt-get -y --force-yes install wget curl software-properties-common
-    add-apt-repository ppa:opencontrail/ppa
-    add-apt-repository ppa:opencontrail/r2.20
-    echo "deb http://debian.datastax.com/community stable main" | sudo tee -a /etc/apt/sources.list.d/cassandra.sources.list
-    curl -L http://debian.datastax.com/debian/repo_key | apt-key add -
-    apt-key adv --recv-keys --keyserver hkp://keyserver.ubuntu.com:80 0xcbcb082a1bb943db
-    wget https://apt.puppetlabs.com/puppetlabs-release-trusty.deb
-    dpkg -i puppetlabs-release-trusty.deb
-    apt-get update
-    apt-get install -y --force-yes curl tcpdump iptables openssh-server rsync software-properties-common wget libssl0.9.8 \
-                                   contrail-nodemgr contrail-utils zookeeper supervisor cassandra kafka puppet
+apt-get -y --force-yes install wget curl software-properties-common
+add-apt-repository ppa:opencontrail/ppa
+add-apt-repository ppa:opencontrail/r2.20
+echo "deb http://debian.datastax.com/community stable main" | sudo tee -a /etc/apt/sources.list.d/cassandra.sources.list
+curl -L http://debian.datastax.com/debian/repo_key | apt-key add -
+apt-key adv --recv-keys --keyserver hkp://keyserver.ubuntu.com:80 0xcbcb082a1bb943db
+wget https://apt.puppetlabs.com/puppetlabs-release-trusty.deb
+dpkg -i puppetlabs-release-trusty.deb
+apt-get update
+apt-get install -y --force-yes curl tcpdump iptables openssh-server rsync software-properties-common wget libssl0.9.8 \
+        contrail-nodemgr contrail-utils zookeeper supervisor cassandra kafka puppet
 ```
 
 2. configuration
