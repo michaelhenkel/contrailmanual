@@ -1,5 +1,6 @@
 1. software:
-    apt-get -y --force-yes install wget curl software-properties-common
+
+      apt-get -y --force-yes install wget curl software-properties-common
     add-apt-repository ppa:opencontrail/ppa
     add-apt-repository ppa:opencontrail/r2.20
     echo "deb http://debian.datastax.com/community stable main" | sudo tee -a /etc/apt/sources.list.d/cassandra.sources.list
