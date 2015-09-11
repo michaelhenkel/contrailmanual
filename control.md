@@ -23,8 +23,8 @@ apt-get install -y --force-yes curl tcpdump iptables openssh-server rsync softwa
 <li>configuration variables</li>
 </ol>
 ```
-IP='10.0.0.201' # the IP address configured on the database node
-DISC_SERVER=$IP # IP address, hostname of the Discovery server (config node). Can also be the vip if load-balanced
+IP='10.0.0.203' # the IP address configured on the database node
+DISC_SERVER='10.0.0.201' # IP address, hostname of the Discovery server (config node). Can also be the vip if load-balanced
 HOSTNAME=ctrl2 # the hostname of the database node
 ADMIN_USER=admin
 ADMIN_PASSWORD=ladakh1
@@ -146,25 +146,13 @@ sed -i "s/cassandra_server_list = 127.0.0.1:9160/cassandra_server_list = $casLis
 echo "$IP $HOSTNAME" >> /etc/hosts
 ```
 
-<li>restart supervisor-config</li>
+<li>restart supervisor-control</li>
 ```
-stop supervisor-config
-start supervisor-config
+stop supervisor-control
+start supervisor-control
 ```
 
 <li>check status</li>
 ```
 contrail-status
-== Contrail Config ==
-supervisor-config:            active
-contrail-api:0                initializing (Collector connection down)
-contrail-config-nodemgr       active
-contrail-device-manager       initializing (Collector connection down)
-contrail-discovery:0          active
-contrail-schema               initializing (Collector connection down)
-contrail-svc-monitor          initializing (Collector connection down)
-
-== Contrail Support Services ==
-supervisor-support-service:   inactive (disabled on boot)
-unix:///tmp/supervisord_support_service.sockno
 ```
