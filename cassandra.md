@@ -18,7 +18,7 @@ apt-get install -y --force-yes curl tcpdump iptables openssh-server \
         contrail-nodemgr contrail-utils zookeeper supervisor cassandra kafka puppet
 ```
 
-<ol>
+<ol start=2>
 <li>configuration</li>
 </ol>
 
