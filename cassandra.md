@@ -22,7 +22,7 @@ apt-get install -y --force-yes curl tcpdump iptables openssh-server \
 <li>configuration</li>
 </ol>
 
-a. create /etc/contrail/contrail-database-nodemgr.conf
+<li>create /etc/contrail/contrail-database-nodemgr.conf</li>
 ```
 cat << EOF > /etc/contrail/contrail-database-nodemgr.conf
 [DEFAULT]
