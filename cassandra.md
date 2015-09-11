@@ -28,6 +28,7 @@ apt-get install -y --force-yes curl tcpdump iptables openssh-server \
 ```
 IP='10.0.0.200' # the IP address configured on the database node
 DISCIP=vip # IP address, hostname of the Discovery server (config node). Can also be the vip if load-balanced
+HOSTNAME=cas2 # the hostname of the database node
 ```
 
 <ol start=3>
@@ -209,12 +210,12 @@ EOF
 
 <li>modify zookeeper server</li>
 ```
-sed -i 's/#server.1=zookeeper1:2888:3888/server.1=10.0.0.200:2888:3888/g' /etc/zookeeper/conf/zoo.cfg
+sed -i "s/#server.1=zookeeper1:2888:3888/server.1=$IP:2888:3888/g" /etc/zookeeper/conf/zoo.cfg
 ```
 
 <li>add host entry</li>
 ```
-echo "10.0.0.200	cas2" >> /etc/hosts
+echo "$IP $HOSTNAME" >> /etc/hosts
 ```
 
 <li>patch contrail-status</li>
