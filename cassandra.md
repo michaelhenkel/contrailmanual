@@ -1,5 +1,6 @@
 <ol>
 <li>software:</li>
+</ol>
 
 ```
 apt-get -y --force-yes install wget curl software-properties-common
@@ -216,4 +217,3 @@ m. restart supervisor-database
 ```
 start supervisor-database
 ```
-</ol>
