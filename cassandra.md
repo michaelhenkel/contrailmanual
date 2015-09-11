@@ -4,18 +4,20 @@
 apt-get -y --force-yes install wget curl software-properties-common
 add-apt-repository ppa:opencontrail/ppa
 add-apt-repository ppa:opencontrail/r2.20
-echo "deb http://debian.datastax.com/community stable main" | sudo tee -a /etc/apt/sources.list.d/cassandra.sources.list
+echo "deb http://debian.datastax.com/community stable main" | \
+     sudo tee -a /etc/apt/sources.list.d/cassandra.sources.list
 curl -L http://debian.datastax.com/debian/repo_key | apt-key add -
 apt-key adv --recv-keys --keyserver hkp://keyserver.ubuntu.com:80 0xcbcb082a1bb943db
 wget https://apt.puppetlabs.com/puppetlabs-release-trusty.deb
 dpkg -i puppetlabs-release-trusty.deb
 apt-get update
-apt-get install -y --force-yes curl tcpdump iptables openssh-server rsync software-properties-common wget libssl0.9.8 \
+apt-get install -y --force-yes curl tcpdump iptables openssh-server \
+        rsync software-properties-common wget libssl0.9.8 \
         contrail-nodemgr contrail-utils zookeeper supervisor cassandra kafka puppet
 ```
 
 2. configuration
-a. /etc/contrail/contrail-database-nodemgr.conf
+a. create /etc/contrail/contrail-database-nodemgr.conf
 ```
 cat << EOF > /etc/contrail/contrail-database-nodemgr.conf
 [DEFAULT]
@@ -27,12 +29,12 @@ server=vip
 port=5998
 EOF
 ```
-b. contrail logfile
+b. create contrail logfile directory
 ```
 mkdir /var/log/contrail
 ```
 
-c. create supervisord_database.conf
+c. create /etc/contrail/supervisord_database.conf
 ```
 cat << EOF > /etc/contrail/supervisord_database.conf
 ; contrail database (cassandra) supervisor config file.
@@ -72,7 +74,7 @@ files = /etc/contrail/supervisord_database_files/*.ini
 EOF
 ```
 
-d. create supervisord_database_files/ and files
+d. create /etc/contrail/supervisord_database_files directory and files
 ```
 mkdir /etc/contrail/supervisord_database_files
 
@@ -101,7 +103,7 @@ killasgroup=false             ; SIGKILL the UNIX process group (def false)
 EOF
 ``` 
 
-e. create upstart job
+e. create supervisor-database upstart job
 ```
 cat << EOF > /etc/init/supervisor-database.conf
 description     "Supervisord for VNC Database"
@@ -142,7 +144,7 @@ end script
 EOF
 ```
 
-f. change cassandra.yaml:
+f. modify /etc/cassandra/cassandra.yaml:
 ```
 sed -i "s/cluster_name: 'Test Cluster'/cluster_name: 'Contrail'/g" /etc/cassandra/cassandra.yaml
 sed -i 's/"127.0.0.1"/"10.0.0.200"/g' /etc/cassandra/cassandra.yaml
@@ -150,7 +152,12 @@ sed -i 's/localhost/10.0.0.200/g' /etc/cassandra/cassandra.yaml
 sed -i 's/start_rpc: false/start_rpc: true/g' /etc/cassandra/cassandra.yaml
 ```
 
-g. create zookeeper upstart
+g. change cassandra stack size:
+```
+sed -i 's/JVM_OPTS="$JVM_OPTS -Xss180k"/JVM_OPTS="$JVM_OPTS -Xss512k"/g' /etc/cassandra/cassandra-env.sh
+```
+
+h. create zookeeper upstart
 ```
 cat << EOF > /etc/init/zookeeper.conf
 description "zookeeper centralized coordination service"
@@ -183,32 +190,27 @@ end script
 EOF
 ```
 
-d. change zookeeper server:
+i. modify zookeeper server:
 ```
 sed -i 's/#server.1=zookeeper1:2888:3888/server.1=10.0.0.200:2888:3888/g' /etc/zookeeper/conf/zoo.cfg
 ```
 
-e. change stack size:
-```
-sed -i 's/JVM_OPTS="$JVM_OPTS -Xss180k"/JVM_OPTS="$JVM_OPTS -Xss512k"/g' /etc/cassandra/cassandra-env.sh
-```
-
-f. add host entry:
+j. add host entry:
 ```
 echo "10.0.0.200	cas2" >> /etc/hosts
 ```
 
-g. patch contrail-status
+k. patch contrail-status
 ```
 sed -i "/storage = package_installed('contrail-storage')/a \ \ \ \ database = True" /usr/bin/contrail-status
 ```
 
-h. start zookeeper
+l. start zookeeper
 ```
 start zookeeper
 ```
 
-i. restart supervisor-database
+m. restart supervisor-database
 ```
 start supervisor-database
 ```
