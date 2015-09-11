@@ -1,5 +1,9 @@
+The instruction describes the manual setup of an OpenContrail Database Node using
+the official PPA. In the instructions below 10.0.0.200 is used as the IP address
+of the node and 'vip' as the hostname of the virtual IP address of the LB.
+
 <ol>
-<li>software</li>
+<li>software installation</li>
 </ol>
 
 ```
@@ -19,6 +23,14 @@ apt-get install -y --force-yes curl tcpdump iptables openssh-server \
 ```
 
 <ol start=2>
+<li>configuration variables</li>
+</ol>
+```
+IP='10.0.0.200' # the IP address configured on the database node
+DISCIP=vip # IP address, hostname of the Discovery server (config node). Can also be the vip if load-balanced
+```
+
+<ol start=3>
 <li>configuration</li>
 </ol>
 
@@ -26,20 +38,20 @@ apt-get install -y --force-yes curl tcpdump iptables openssh-server \
 ```
 cat << EOF > /etc/contrail/contrail-database-nodemgr.conf
 [DEFAULT]
-hostip=10.0.0.200
+hostip=$IP
 minimum_diskGB=20
 
 [DISCOVERY]
-server=vip
+server=$DISCIP
 port=5998
 EOF
 ```
-b. create contrail logfile directory
+<li>create contrail logfile directory</li>
 ```
 mkdir /var/log/contrail
 ```
 
-c. create /etc/contrail/supervisord_database.conf
+<li>create /etc/contrail/supervisord_database.conf</li>
 ```
 cat << EOF > /etc/contrail/supervisord_database.conf
 ; contrail database (cassandra) supervisor config file.
@@ -79,7 +91,7 @@ files = /etc/contrail/supervisord_database_files/*.ini
 EOF
 ```
 
-d. create /etc/contrail/supervisord_database_files directory and files
+<li>create /etc/contrail/supervisord_database_files directory and files</li>
 ```
 mkdir /etc/contrail/supervisord_database_files
 
@@ -108,7 +120,7 @@ killasgroup=false             ; SIGKILL the UNIX process group (def false)
 EOF
 ``` 
 
-e. create supervisor-database upstart job
+<li>create supervisor-database upstart job</li>
 ```
 cat << EOF > /etc/init/supervisor-database.conf
 description     "Supervisord for VNC Database"
@@ -149,7 +161,7 @@ end script
 EOF
 ```
 
-f. modify /etc/cassandra/cassandra.yaml:
+<li>modify /etc/cassandra/cassandra.yaml</li>
 ```
 sed -i "s/cluster_name: 'Test Cluster'/cluster_name: 'Contrail'/g" /etc/cassandra/cassandra.yaml
 sed -i 's/"127.0.0.1"/"10.0.0.200"/g' /etc/cassandra/cassandra.yaml
@@ -157,12 +169,12 @@ sed -i 's/localhost/10.0.0.200/g' /etc/cassandra/cassandra.yaml
 sed -i 's/start_rpc: false/start_rpc: true/g' /etc/cassandra/cassandra.yaml
 ```
 
-g. change cassandra stack size:
+<li>change cassandra stack size</li>
 ```
 sed -i 's/JVM_OPTS="$JVM_OPTS -Xss180k"/JVM_OPTS="$JVM_OPTS -Xss512k"/g' /etc/cassandra/cassandra-env.sh
 ```
 
-h. create zookeeper upstart
+<li>create zookeeper upstart</li>
 ```
 cat << EOF > /etc/init/zookeeper.conf
 description "zookeeper centralized coordination service"
@@ -195,27 +207,37 @@ end script
 EOF
 ```
 
-i. modify zookeeper server:
+<li>modify zookeeper server</li>
 ```
 sed -i 's/#server.1=zookeeper1:2888:3888/server.1=10.0.0.200:2888:3888/g' /etc/zookeeper/conf/zoo.cfg
 ```
 
-j. add host entry:
+<li>add host entry</li>
 ```
 echo "10.0.0.200	cas2" >> /etc/hosts
 ```
 
-k. patch contrail-status
+<li>patch contrail-status</li>
 ```
 sed -i "/storage = package_installed('contrail-storage')/a \ \ \ \ database = True" /usr/bin/contrail-status
 ```
 
-l. start zookeeper
+<li>start zookeeper</li>
 ```
 start zookeeper
 ```
 
-m. restart supervisor-database
+<li>restart supervisor-database</li>
 ```
 start supervisor-database
+```
+
+<li>check status</li>
+```
+contrail-status
+== Contrail Database ==
+supervisor-database:          active
+contrail-database             active
+contrail-database-nodemgr     initializing (Disk space for analytics db not retrievable.)
+kafka                         active
 ```
