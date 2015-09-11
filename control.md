@@ -37,6 +37,7 @@ ZOOKEEPER_PORT=2181
 RABBIT_SERVER=vip
 RABBIT_PORT=5672
 ANALYTICS_SERVER='10.0.0.202'
+DNS_SERVER='10.0.0.1'
 ```
 
 <ol start=3>
@@ -72,6 +73,28 @@ cat << EOF > /etc/contrail/contrail-control-nodemgr.conf
 server=$DISC_SERVER
 port=5998
 EOF
+```
+
+<li>create /etc/contrail/supervisord_control_files/contrail-nodemgr-control.ini</li>
+```
+cat << EOF > /etc/contrail/supervisord_control_files/contrail-nodemgr-control.ini
+; The below sample eventlistener section shows all possible
+; eventlistener subsection values, create one or more 'real'
+; eventlistener: sections to be able to handle event notifications
+; sent by supervisor.
+
+[eventlistener:contrail-control-nodemgr]
+command=/bin/bash -c "exec python /usr/bin/contrail-nodemgr --nodetype=contrail-control"
+events=PROCESS_COMMUNICATION,PROCESS_STATE,TICK_60
+buffer_size=10000                ; event buffer queue size (default 10)
+stdout_logfile=/var/log/contrail/contrail-control-nodemgr-stdout.log ; stdout log path, NONE for none; default AUTO
+stderr_logfile=/var/log/contrail/contrail-control-nodemgr-stderr.log ; stderr log path, NONE for none; default AUTO
+EOF
+```
+
+<li>modify /etc/contrail/dns/contrail-named.conf</li>
+```
+sed -i "/match-recursive-only no;/a \ \ \ \ forwarders {$DNS_SERVER; };" /etc/contrail/dns/contrail-named.conf
 ```
 
 <li>modify /etc/contrail/contrail-control.conf</li>
@@ -117,190 +140,6 @@ EOF
 sed -i "s/zk_server_ip=127.0.0.1/zk_server_ip=$CASSANDRA_SERVER_LIST/g" /etc/contrail/contrail-discovery.conf
 sed -i "s/cassandra_server_list = 127.0.0.1:9160/cassandra_server_list = $casList/g" /etc/contrail/contrail-discovery.conf
 ``` 
-
-<li>create /etc/contrail/contrail-keystone-auth.conf</li>
-```
-cat << EOF > /etc/contrail/contrail-keystone-auth.conf
-[KEYSTONE]
-auth_host=$KEYSTONE_SERVER
-auth_protocol=http
-auth_port=35357
-admin_user=$ADMIN_USER
-admin_password=$ADMIN_PASSWORD
-admin_token=$ADMIN_TOKEN
-admin_tenant_name=$ADMIN_TENANT
-insecure=false
-memcache_servers=127.0.0.1:11211
-EOF
-```
-
-<li>modify /etc/contrail/contrail-schema.conf</li>
-```
-casList=
-for ip in $CASSANDRA_SERVER_LIST
-do
-    casList=`echo $casList$ip:$CASSANDRA_PORT,`
-done
-casList=`echo ${casList::-1}`
-
-zooList=
-for ip in $CASSANDRA_SERVER_LIST
-do
-    zooList=`echo $zooList$ip:$ZOOKEEPER_PORT,`
-done
-zooList=`echo ${zooList::-1}`
-
-cat << EOF > /etc/contrail/contrail-schema.conf
-[DEFAULTS]
-ifmap_server_ip=$IP
-ifmap_server_port=8443
-ifmap_username=schema-transformer
-ifmap_password=schema-transformer
-api_server_ip=$IP
-api_server_port=8082
-zk_server_ip=$zooList
-log_file=/var/log/contrail/schema.log
-cassandra_server_list=$casList
-disc_server_ip=$IP
-disc_server_port=5998
-log_local=1
-log_level=SYS_NOTICE
-
-[SECURITY]
-use_certs=false
-keyfile=/etc/contrail/ssl/private_keys/schema_xfer_key.pem
-certfile=/etc/contrail/ssl/certs/schema_xfer.pem
-ca_certs=/etc/contrail/ssl/certs/ca.pem
-
-[KEYSTONE]
-auth_host=$KEYSTONE_SERVER
-admin_user=$ADMIN_USER
-admin_password=$ADMIN_PASSWORD
-admin_tenant_name=$ADMIN_TENANT
-admin_token=$ADMIN_TOKEN
-EOF
-```
-
-<li>modify /etc/contrail/contrail-svc-monitor.conf</li>
-```
-casList=
-for ip in $CASSANDRA_SERVER_LIST
-do
-    casList=`echo $casList$ip:$CASSANDRA_PORT,`
-done
-casList=`echo ${casList::-1}`
-
-zooList=
-for ip in $CASSANDRA_SERVER_LIST
-do
-    zooList=`echo $zooList$ip:$ZOOKEEPER_PORT,`
-done
-zooList=`echo ${zooList::-1}`
-
-cat << EOF > /etc/contrail/contrail-svc-monitor.conf
-[DEFAULTS]
-ifmap_server_ip=$IP
-ifmap_server_port=8443
-ifmap_username=svc-monitor
-ifmap_password=svc-monitor
-api_server_ip=$IP
-api_server_port=8082
-zk_server_ip=$zooList
-log_file=/var/log/contrail/svc-monitor.log
-cassandra_server_list=$casList
-disc_server_ip=$IP
-disc_server_port=5998
-region_name=
-log_local=1
-log_level=SYS_NOTICE
-rabbit_server=$RABBIT_SERVER
-rabbit_port=$RABBIT_PORT
-
-[SECURITY]
-use_certs=false
-keyfile=/etc/contrail/ssl/private_keys/svc_monitor_key.pem
-certfile=/etc/contrail/ssl/certs/svc_monitor.pem
-ca_certs=/etc/contrail/ssl/certs/ca.pem
-
-[SCHEDULER]
-analytics_server_ip=$ANALYTICS_SERVER
-analytics_server_port=8081
-
-[KEYSTONE]
-auth_host=$KEYSTONE_SERVER
-admin_user=$ADMIN_USER
-admin_password=$ADMIN_PASSWORD
-admin_tenant_name=$ADMIN_TENANT
-admin_token=$ADMIN_TOKEN
-EOF
-```
-
-
-<li>create /etc/contrail/supervisord_config_files/contrail-nodemgr-config.ini</li>
-```
-cat << EOF > /etc/contrail/supervisord_config_files/contrail-nodemgr-config.ini
-[eventlistener:contrail-config-nodemgr]
-command=/bin/bash -c "exec python /usr/bin/contrail-nodemgr --nodetype=contrail-config"
-events=PROCESS_COMMUNICATION,PROCESS_STATE,TICK_60
-buffer_size=10000                ; event buffer queue size (default 10)
-stdout_logfile=/var/log/contrail/contrail-config-nodemgr-stdout.log       ; stdout log path, NONE for none; default AUTO
-stderr_logfile=/var/log/contrail/contrail-config-nodemgr-stderr.log ; stderr log path, NONE for none; default AUTO
-EOF
-```
-
-<li>create /etc/contrail/supervisord_support_service.conf</li>
-```
-cat << EOF > /etc/contrail/supervisord_support_service.conf
-
-[unix_http_server]
-file=/tmp/supervisord_support_service.sock   ; (the path to the socket file)
-chmod=0700                 ; socket file mode (default 0700)
-
-[supervisord]
-logfile=/var/log/contrail/supervisord-support-service.log ; (main log file;default $CWD/supervisord.log)
-logfile_maxbytes=50MB        ; (max main logfile bytes b4 rotation;default 50MB)
-logfile_backups=3            ; (num of main logfile rotation backups;default 10)
-loglevel=info                ; (log level;default info; others: debug,warn,trace)
-pidfile=/var/run/supervisord-support-service.pid   ; (supervisord pidfile;default supervisord.pid)
-nodaemon=false               ; (start in foreground if true;default false)
-minfds=1024                  ; (min. avail startup file descriptors;default 1024)
-minprocs=200                 ; (min. avail process descriptors;default 200)
-nocleanup=true              ; (dont clean up tempfiles at start;default false)
-childlogdir=/var/log/contrail ; (AUTO child log dir, default $TEMP)
-
-[rpcinterface:supervisor]
-supervisor.rpcinterface_factory = supervisor.rpcinterface:make_main_rpcinterface
-
-[supervisorctl]
-serverurl=unix:///tmp/supervisord_support_service.sock ; use a unix:// URL  for a unix socket
-buffer_size=10000                ; event buffer queue size (default 10)
-stdout_logfile=/var/log/contrail/contrail-support-service-nodemgr-stdout.log       ; stdout log path, NONE for none; default AUTO
-stderr_logfile=/var/log/contrail/contrail-support-service-nodemgr-stderr.log ; stderr log path, NONE for none; default AUTO
-
-[include]
-files = /etc/contrail/supervisord_support_service_files/*.ini
-```
-
-<li>create /etc/contrail/supervisord_support_service_files/ directory and files</li>
-```
-mkdir /etc/contrail/supervisord_support_service_files
-cat << EOF > /etc/contrail/supervisord_support_service_files/rabbitmq-server.ini
-[program:rabbitmq-server]
-command=/usr/sbin/rabbitmq-server
-redirect_stderr=true
-stdout_logfile=/var/log/contrail/rabbit-server-supervisor-stdout.log
-stderr_logfile=/var/log/contrail/rabbit-server-supervisor-stderr.log
-priority=410
-autostart=true
-autorestart=true
-startsecs=5
-startretries=15
-killasgroup=true
-stopasgroup=true
-stopsignal=TERM
-exitcodes=0
-EOF
-```
 
 <li>add host entry</li>
 ```
