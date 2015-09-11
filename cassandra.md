@@ -1,5 +1,5 @@
 <ol>
-<li>software:</li>
+<li>software</li>
 </ol>
 
 ```
@@ -18,7 +18,9 @@ apt-get install -y --force-yes curl tcpdump iptables openssh-server \
         contrail-nodemgr contrail-utils zookeeper supervisor cassandra kafka puppet
 ```
 
-2. configuration
+<ol>
+<li>configuration</li>
+</ol>
 
 a. create /etc/contrail/contrail-database-nodemgr.conf
 ```
