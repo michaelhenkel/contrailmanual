@@ -360,8 +360,8 @@ echo "$IP $HOSTNAME" >> /etc/hosts
 
 <li>restart supervisor-config</li>
 ```
-stop supervisor-database
-start supervisor-database
+stop supervisor-config
+start supervisor-config
 ```
 
 <li>check status</li>
