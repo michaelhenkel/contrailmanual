@@ -1,4 +1,5 @@
-1. software:
+<ol>
+<li>software:</li>
 
 ```
 apt-get -y --force-yes install wget curl software-properties-common
@@ -17,6 +18,7 @@ apt-get install -y --force-yes curl tcpdump iptables openssh-server \
 ```
 
 2. configuration
+
 a. create /etc/contrail/contrail-database-nodemgr.conf
 ```
 cat << EOF > /etc/contrail/contrail-database-nodemgr.conf
@@ -214,4 +216,4 @@ m. restart supervisor-database
 ```
 start supervisor-database
 ```
-
+</ol>
