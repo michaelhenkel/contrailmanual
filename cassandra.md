@@ -164,8 +164,8 @@ EOF
 <li>modify /etc/cassandra/cassandra.yaml</li>
 ```
 sed -i "s/cluster_name: 'Test Cluster'/cluster_name: 'Contrail'/g" /etc/cassandra/cassandra.yaml
-sed -i 's/"127.0.0.1"/"10.0.0.200"/g' /etc/cassandra/cassandra.yaml
-sed -i 's/localhost/10.0.0.200/g' /etc/cassandra/cassandra.yaml
+sed -i "s/\"127.0.0.1\"/\"$IP\"/g" /etc/cassandra/cassandra.yaml
+sed -i "s/localhost/$IP/g" /etc/cassandra/cassandra.yaml
 sed -i 's/start_rpc: false/start_rpc: true/g' /etc/cassandra/cassandra.yaml
 ```
 
