@@ -7,19 +7,27 @@ of the node and 'vip' as the hostname of the virtual IP address of the LB.
 </ol>
 
 ```
+echo "deb http://www.apache.org/dist/cassandra/debian 21x main" >> /etc/apt/sources.list
+echo "deb-src http://www.apache.org/dist/cassandra/debian 21x main" >> /etc/apt/sources.list
+gpg --keyserver pgp.mit.edu --recv-keys F758CE318D77295D
+gpg --export --armor F758CE318D77295D | sudo apt-key add -
+gpg --keyserver pgp.mit.edu --recv-keys 2B5C1B00
+gpg --export --armor 2B5C1B00 | sudo apt-key add -
+gpg --keyserver pgp.mit.edu --recv-keys 0353B12C
+gpg --export --armor 0353B12C | sudo apt-key add -
+apt-get update
 apt-get -y --force-yes install wget curl software-properties-common
 add-apt-repository ppa:opencontrail/ppa
 add-apt-repository ppa:opencontrail/r2.20
-echo "deb http://debian.datastax.com/community stable main" | \
-     sudo tee -a /etc/apt/sources.list.d/cassandra.sources.list
 curl -L http://debian.datastax.com/debian/repo_key | apt-key add -
 apt-key adv --recv-keys --keyserver hkp://keyserver.ubuntu.com:80 0xcbcb082a1bb943db
 wget https://apt.puppetlabs.com/puppetlabs-release-trusty.deb
 dpkg -i puppetlabs-release-trusty.deb
 apt-get update
 apt-get install -y --force-yes curl tcpdump iptables openssh-server \
-        rsync software-properties-common wget libssl0.9.8 \
-        contrail-nodemgr contrail-utils zookeeper supervisor cassandra kafka puppet
+        ntp rsync software-properties-common wget libssl0.9.8 \
+        contrail-nodemgr contrail-utils zookeeper supervisor \
+        cassandra cassandra-tools python-cassandra-driver kafka puppet
 ```
 
 <ol start=2>
@@ -27,7 +35,7 @@ apt-get install -y --force-yes curl tcpdump iptables openssh-server \
 </ol>
 ```
 IP='10.0.0.200' # the IP address configured on the database node
-DISCIP=vip # IP address, hostname of the Discovery server (config node). Can also be the vip if load-balanced
+DISCIP='10.0.0.201' # IP address, hostname of the Discovery server (config node). Can also be the vip if load-balanced
 HOSTNAME=cas2 # the hostname of the database node
 ```
 
@@ -79,9 +87,6 @@ supervisor.rpcinterface_factory = supervisor.rpcinterface:make_main_rpcinterface
 
 [supervisorctl]
 serverurl=unix:///tmp/supervisord_database.sock ; use a unix:// URL  for a unix socket
-
-[program:contrail-database]
-command=cassandra -f
 
 autostart=true                ; start at supervisord start (default: true)
 stopsignal=KILL               ; signal used to kill process (default TERM)
@@ -164,10 +169,10 @@ EOF
 
 <li>modify /etc/cassandra/cassandra.yaml</li>
 ```
-sed -i "s/cluster_name: 'Test Cluster'/cluster_name: 'Contrail'/g" /etc/cassandra/cassandra.yaml
+#sed -i "s/cluster_name: 'Test Cluster'/cluster_name: 'Contrail'/g" /etc/cassandra/cassandra.yaml
+sed -i "s/ulimit -l unlimited/#ulimit -l unlimited/g" /etc/init.d/cassandra
 sed -i "s/\"127.0.0.1\"/\"$IP\"/g" /etc/cassandra/cassandra.yaml
 sed -i "s/localhost/$IP/g" /etc/cassandra/cassandra.yaml
-sed -i 's/start_rpc: false/start_rpc: true/g' /etc/cassandra/cassandra.yaml
 ```
 
 <li>change cassandra stack size</li>
@@ -230,6 +235,7 @@ start zookeeper
 
 <li>restart supervisor-database</li>
 ```
+service cassandra start
 start supervisor-database
 ```
 
@@ -238,7 +244,6 @@ start supervisor-database
 contrail-status
 == Contrail Database ==
 supervisor-database:          active
-contrail-database             active
 contrail-database-nodemgr     initializing (Disk space for analytics db not retrievable.)
 kafka                         active
 ```

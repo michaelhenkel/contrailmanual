@@ -16,7 +16,7 @@ wget https://apt.puppetlabs.com/puppetlabs-release-trusty.deb
 dpkg -i puppetlabs-release-trusty.deb
 apt-get update
 apt-get install -y --force-yes curl tcpdump iptables openssh-server rsync software-properties-common wget libssl0.9.8 \
-                                        supervisor puppet \
+                                        ntp supervisor puppet \
 					contrail-nodemgr contrail-utils python-contrail contrail-lib \
                                         contrail-analytics
 ```
