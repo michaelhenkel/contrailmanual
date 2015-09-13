@@ -1,4 +1,4 @@
-hosts:
+containerhosts:
   host1: &host1
     ip: 192.168.1.48
     port: 3288
@@ -6,30 +6,31 @@ hosts:
     ip: 192.168.1.49
     port: 3288
 containerdefault: &containerdefault
-  ip:
-  image:
-  volumes:
   mask: 16
   gateway: 10.0.0.100
   dns: 10.0.0.1
   domain: endor.lab
   bridge: br2
   host: *host1
+  volumes: &defaultvolumes
+    defvol1:defvol1
 containers:
   config2:
+    <<: *containerdefault
     ip: 10.0.0.201
     image: config
     volumes:
+    - *defaultvolumes
     - test:test
     - test2:test2
-    <<: *containerdefault
     state:
   config3:
+    <<: *containerdefault
     ip: 10.0.0.202
     image: config
     volumes:
+    - *defaultvolumes
     - test:test
     - test2:test2
-    <<: *containerdefault
     host: *host2
     state:
