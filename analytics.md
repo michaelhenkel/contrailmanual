@@ -404,3 +404,15 @@ contrail-query-engine         active
 contrail-snmp-collector       active
 contrail-topology             active
 ```
+
+<li>ntp workaround (only for docker)</li>
+```
+cat << EOF > /etc/ntp.conf
+restrict 127.0.0.1
+restrict ::1
+server 127.127.1.0 iburst
+driftfile /var/lib/ntp/drift
+fudge 127.127.1.0 stratum 5
+EOF
+service ntp restart
+```

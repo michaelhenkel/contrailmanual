@@ -14,9 +14,9 @@ apt-key adv --recv-keys --keyserver hkp://keyserver.ubuntu.com:80 0xcbcb082a1bb9
 wget https://apt.puppetlabs.com/puppetlabs-release-trusty.deb
 dpkg -i puppetlabs-release-trusty.deb
 apt-get update
-apt-get install -y --force-yes curl tcpdump iptables openssh-server rsync software-properties-common wget libssl0.9.8 \
+apt-get install -y --force-yes curl tcpdump iptables openssh-server rsync ntp software-properties-common wget libssl0.9.8 \
 					contrail-nodemgr contrail-utils puppet supervisor python-contrail contrail-lib \
-                                        contrail-control contrail-dns
+                                        contrail-control contrail-dns python-netaddr
 ```
 
 <ol start=2>
@@ -97,6 +97,42 @@ EOF
 sed -i "/match-recursive-only no;/a \ \ \ \ forwarders {$DNS_SERVER; };" /etc/contrail/dns/contrail-named.conf
 ```
 
+<li>modify /etc/contrail/contrail-dns.conf</li>
+```
+cat << EOF > /etc/contrail/contrail-dns.conf
+#
+# Copyright (c) 2014 Juniper Networks, Inc. All rights reserved.
+#
+# DNS configuration options
+#
+
+[DEFAULT]
+# collectors= # Provided by discovery server
+# dns_config_file=dns_config.xml
+#  hostip=ctrl1 # Resolved IP of `hostname`
+ hostip=$IP # Resolved IP of `hostname`
+# dns_server_port=53
+# log_category=
+# log_disable=0
+  log_file=/var/log/contrail/dns.log
+# log_files_count=10
+# log_file_size=1048576 # 1MB
+  log_level=SYS_NOTICE
+  log_local=1
+# test_mode=0
+
+[DISCOVERY]
+# port=5998
+  server=$DISC_SERVER # discovery-server IP address
+
+[IFMAP]
+    certs_store=
+    password=$IP.dns
+  #server_url=https://vip:8443 # Provided by discovery server, e.g. https://127.0.0.1:8443
+  user=$IP.dns
+EOF
+```
+
 <li>modify /etc/contrail/contrail-control.conf</li>
 ```
 cat << EOF > /etc/contrail/contrail-control.conf
@@ -129,9 +165,9 @@ cat << EOF > /etc/contrail/contrail-control.conf
 
 [IFMAP]
   certs_store=
-  password=$HOSTNAME
+  password=$IP
   #server_url=https://vip:8443 # Provided by discovery server, e.g. https://127.0.0.1:8443
-  user=$HOSTNAME
+  user=$IP
 EOF
 ```
 
@@ -140,6 +176,12 @@ EOF
 sed -i "s/zk_server_ip=127.0.0.1/zk_server_ip=$CASSANDRA_SERVER_LIST/g" /etc/contrail/contrail-discovery.conf
 sed -i "s/cassandra_server_list = 127.0.0.1:9160/cassandra_server_list = $casList/g" /etc/contrail/contrail-discovery.conf
 ``` 
+
+<li>provision control node</li>
+```
+contrail-provision-control --api_server_ip $DISC_SERVER --api_server_port 8082 --host_name $HOSTNAME \
+--host_ip $IP --router_asn 64512 --oper add --admin_user $ADMIN_USER --admin_password $ADMIN_PASSWORD --admin_tenant $ADMIN_TENANT
+```
 
 <li>add host entry</li>
 ```
@@ -156,3 +198,16 @@ start supervisor-control
 ```
 contrail-status
 ```
+
+<li>ntp workaround (only for docker)</li>
+```
+cat << EOF > /etc/ntp.conf
+restrict 127.0.0.1
+restrict ::1
+server 127.127.1.0 iburst
+driftfile /var/lib/ntp/drift
+fudge 127.127.1.0 stratum 5
+EOF
+service ntp restart
+```
+
