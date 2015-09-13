@@ -40,6 +40,7 @@ RABBIT_SERVER=vip
 RABBIT_PORT=5672
 ANALYTICS_SERVER_LIST='10.0.0.202'
 ANALYTICS_PORT=8086
+CONFIG_SERVER='10.0.0.201'
 ```
 
 <ol start=3>
@@ -375,9 +376,19 @@ stderr_logfile=/var/log/contrail/contrail-analytics-nodemgr-stderr.log ; stderr 
 EOF
 ```
 
+<li>provision analytics node</li>
+```
+/usr/share/contrail-utils/provision_analytics_node.py --api_server_ip $CONFIG_SERVER --api_server_port 8082 --host_name $HOSTNAME --host_ip $IP --oper add --admin_user $ADMIN_USER --admin_password $ADMIN_PASSWORD --admin_tenant $ADMIN_TENANT
+```
+
 <li>add host entry</li>
 ```
 echo "$IP $HOSTNAME" >> /etc/hosts
+```
+
+<li>change redis-server bind address</li>
+```
+sed -i "s/bind 127.0.0.1/bind $IP/g" /etc/redis/redis.conf
 ```
 
 <li>start redis-server</li>

@@ -40,6 +40,7 @@ RABBIT_SERVER=vip
 RABBIT_PORT=5672
 ANALYTICS_SERVER='10.0.0.202'
 CONTROL_SERVER_LIST='10.0.0.203'
+CONFIG_SERVER='10.0.0.201'
 ```
 
 <ol start=3>
@@ -361,6 +362,11 @@ stopasgroup=true
 stopsignal=TERM
 exitcodes=0
 EOF
+```
+
+<li>provision config node</li>
+```
+/usr/share/contrail-utils/provision_config_node.py --api_server_ip $CONFIG_SERVER --api_server_port 8082 --host_name $HOSTNAME --host_ip $IP --oper add --admin_user $ADMIN_USER --admin_password $ADMIN_PASSWORD --admin_tenant $ADMIN_TENANT
 ```
 
 <li>add host entry</li>
