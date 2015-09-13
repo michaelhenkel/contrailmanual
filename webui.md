@@ -82,11 +82,6 @@ start contrail-webui-jobserver
 start contrail-webui-webserver
 ```
 
-<li>check status</li>
-```
-contrail-status
-```
-
 <li>ntp workaround (only for docker)</li>
 ```
 cat << EOF > /etc/ntp.conf
